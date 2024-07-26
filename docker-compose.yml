@@ -1,0 +1,45 @@
+version: '3'
+
+volumes:
+  neuralangelo_output:
+
+services:
+  colmap:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile-colmap
+    image: chenhsuanlin/colmap:3.8
+    volumes:
+      - .:/app/project  # Mount the entire project directory
+      - ./input:/app/input:ro
+      - neuralangelo_output:/app/output
+    working_dir: /app/project
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  neuralangelo:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile-neuralangelo
+    image: chenhsuanlin/neuralangelo:23.04-py3
+    volumes:
+      - .:/app/project  # Mount the entire project directory
+      - ./input:/app/input:ro
+      - neuralangelo_output:/app/output
+    working_dir: /app/project
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
